@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ParrotMcStore Network</title>
+<!-- Browser Tab / Taskbar Favicon Logo -->
+<link href="IMG_0603.jpeg" rel="icon" type="image/jpeg"/>
+<link href="IMG_0603.jpeg" rel="shortcut icon" type="image/jpeg"/>
+<link href="IMG_0603.jpeg" rel="apple-touch-icon"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        :root {
+            --bg-dark: #05070a;
+            --accent-green: #00ff88;
+            --accent-cyan: #00d8ff;
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --discord-blurple: #5865F2;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .ambient-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -3;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(0, 255, 136, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(0, 216, 255, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(5, 7, 10, 0.8) 0%, #05070a 100%);
+            filter: blur(40px);
+            pointer-events: none;
+        }
+
+        .mouse-glow {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.12) 0%, rgba(0, 216, 255, 0.04) 50%, transparent 70%);
+            pointer-events: none;
+            z-index: -2;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        #blocks-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Dynamic Island Header */
+        header {
+            position: fixed;
+            top: 18px;
+            left: 5%;
+            right: 5%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .dynamic-island {
+            padding: 12px 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            background: rgba(4, 7, 12, 0.92);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: all 0.35s ease;
+            pointer-events: auto;
+        }
+
+        .dynamic-island::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 12px var(--accent-green);
+            animation: pulse 1.8s infinite;
+        }
+
+        .dynamic-island:hover {
+            transform: translateY(-2px) scale(1.02);
+            border-color: rgba(0, 255, 136, 0.35);
+            box-shadow: 0 16px 42px rgba(0, 255, 136, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(4, 7, 12, 0.92);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
+            pointer-events: auto;
+        }
+
+        .header-nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 9px 14px;
+            border-radius: 999px;
+            transition: all 0.25s ease;
+        }
+
+        .header-nav a:hover {
+            color: #05070a;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+        }
+
+        .header-nav .support-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #5865F2, #404EED);
+            box-shadow: 0 0 18px rgba(88, 101, 242, 0.35);
+        }
+
+        .header-nav .support-btn:hover {
+            color: #ffffff;
+            background: linear-gradient(135deg, #6f7bf7, #5865F2);
+            transform: translateY(-1px);
+            box-shadow: 0 0 24px rgba(88, 101, 242, 0.55);
+        }
+
+        /* Rainbow Text Effect for Header Title */
+        .rainbow-title {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            background: linear-gradient(
+                90deg,
+                #ff0055,
+                #ff5000,
+                #ffcc00,
+                #00ff88,
+                #00d8ff,
+                #7f00ff,
+                #ff0055
+            );
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbowShift 5s linear infinite;
+        }
+
+        @keyframes rainbowShift {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+
+        /* Hero Section Layout */
+        .hero {
+            min-height: 88vh;
+            padding: 160px 8% 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .hero-text {
+            max-width: 580px;
+            text-align: left;
+        }
+
+        .server-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 30px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            color: var(--accent-green);
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-green);
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(0, 255, 136, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+
+        .hero h1 {
+            font-size: 52px;
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+        }
+
+        .hero h1 span.welcome-text {
+            display: block;
+            color: var(--text-main);
+        }
+
+        .hero h1 span.highlight {
+            display: block;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 15px;
+            color: var(--text-sub);
+            line-height: 1.6;
+        }
+
+        /* Globe Container */
+        .globe-wrapper {
+            position: relative;
+            width: 380px;
+            height: 380px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        #core-globe {
+            width: 360px;
+            height: 360px;
+            border-radius: 50%;
+        }
+
+        .globe-aura {
+            position: absolute;
+            width: 330px;
+            height: 330px;
+            border-radius: 50%;
+            box-shadow: 0 0 60px rgba(0, 150, 255, 0.15), inset 0 0 40px rgba(0, 100, 255, 0.1);
+            pointer-events: none;
+        }
+
+        .section-gap {
+            height: 140px;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(60px);
+            transition: all 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Free Shop Section */
+        .free-shop-section {
+            padding: 0 8% 60px;
+        }
+
+        .free-shop-heading {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            background: linear-gradient(
+                110deg,
+                #ff007f 0%,
+                #ff00c8 25%,
+                #7f00ff 50%,
+                #00d8ff 75%,
+                #0055ff 100%
+            );
+            background-size: 250% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: slowGradient 8s ease infinite alternate;
+        }
+
+        @keyframes slowGradient {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .free-shop-heading i {
+            -webkit-text-fill-color: initial;
+            color: #ff007f;
+        }
+
+        .store-section {
+            padding: 20px 8% 80px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .section-title i {
+            color: var(--accent-green);
+        }
+
+        .store-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .shop-card {
+            background: rgba(12, 17, 29, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .shop-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .shop-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+
+        .shop-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .free-badge {
+            background: rgba(0, 255, 136, 0.18);
+            color: #00ff88;
+            border-color: rgba(0, 255, 136, 0.4);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--accent-green);
+            margin-bottom: 18px;
+        }
+
+        .shop-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .shop-card p {
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .price-val {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+
+        .claim-btn {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+            color: #05070a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .claim-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(3, 5, 8, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: rgba(12, 17, 29, 0.95);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 255, 136, 0.15);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 480px;
+            padding: 32px;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            text-align: center;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-sub);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-modal-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .modal-icon {
+            width: 65px;
+            height: 65px;
+            border-radius: 20px;
+            background: rgba(88, 101, 242, 0.15);
+            border: 1px solid rgba(88, 101, 242, 0.4);
+            color: var(--discord-blurple);
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .modal-card h3 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .instructions-list {
+            text-align: left;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 13.5px;
+            color: var(--text-sub);
+            line-height: 1.4;
+        }
+
+        .step-number {
+            background: var(--accent-green);
+            color: #05070a;
+            font-weight: 800;
+            font-size: 12px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .step-item strong {
+            color: #fff;
+        }
+
+        .dc-done-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #5865F2, #404EED);
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.25s ease;
+            box-shadow: 0 10px 20px rgba(88, 101, 242, 0.3);
+        }
+
+        .dc-done-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(88, 101, 242, 0.5);
+        }
+
+        footer {
+            text-align: left;
+            padding: 30px 8%;
+            border-top: 1px solid var(--card-border);
+            color: var(--text-sub);
+            font-size: 13px;
+            background: rgba(5, 7, 10, 0.95);
+        }
+
+        @media (max-width: 900px) {
+            .hero { 
+                flex-direction: column; 
+                text-align: center; 
+                padding: 140px 5% 20px; 
+                min-height: auto; 
+            }
+            .hero-text {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .hero h1 { font-size: 36px; }
+            .globe-wrapper { width: 280px; height: 280px; margin-top: 20px; }
+            #core-globe { width: 260px; height: 260px; }
+            .globe-aura { width: 240px; height: 240px; }
+            .section-gap { height: 80px; }
+            .free-shop-section { padding: 0 5% 40px; }
+            .free-shop-heading { font-size: 24px; }
+            .store-section { padding: 20px 5% 60px; }
+            footer { padding: 25px 5%; }
+            .mouse-glow { display: none; }
+            header { left: 3%; right: 3%; top: 12px; gap: 10px; }
+            .dynamic-island { padding: 10px 16px; }
+            .rainbow-title { font-size: 17px; }
+            .header-nav { gap: 2px; padding: 6px; overflow-x: auto; max-width: 68vw; }
+            .header-nav a { font-size: 11px; padding: 8px 10px; white-space: nowrap; }
+        }
+    
+
+        /* Paid Rank and About Sections */
+        .paid-rank-section,
+        .about-section {
+            padding: 30px 8% 80px;
+            scroll-margin-top: 120px;
+        }
+
+        .paid-rank-heading,
+        .about-heading {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            background: linear-gradient(110deg, #ff007f 0%, #ffcc00 28%, #7f00ff 55%, #00d8ff 78%, #00ff88 100%);
+            background-size: 260% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: slowGradient 8s ease infinite alternate;
+        }
+
+        .paid-rank-heading i,
+        .about-heading i {
+            -webkit-text-fill-color: initial;
+            color: #ffcc00;
+        }
+
+        .coming-soon-card {
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: rgba(12, 17, 29, 0.72);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 204, 0, 0.24);
+            border-radius: 22px;
+            padding: 34px 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.35);
+        }
+
+        .coming-soon-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 204, 0, 0.45), transparent 30%, rgba(127, 0, 255, 0.35), transparent 65%, rgba(0, 216, 255, 0.4), transparent);
+            animation: rotateBorder 6s linear infinite;
+            z-index: -2;
+        }
+
+        .coming-soon-card::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 20px;
+            background: rgba(8, 12, 20, 0.96);
+            z-index: -1;
+        }
+
+        @keyframes rotateBorder {
+            to { transform: rotate(360deg); }
+        }
+
+        .soon-icon {
+            width: 74px;
+            height: 74px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            font-size: 32px;
+            color: #ffcc00;
+            background: rgba(255, 204, 0, 0.1);
+            border: 1px solid rgba(255, 204, 0, 0.28);
+            animation: soonFloat 2.4s ease-in-out infinite;
+        }
+
+        @keyframes soonFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .coming-soon-text {
+            font-size: clamp(30px, 5vw, 56px);
+            font-weight: 900;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, #ffcc00, #ff007f, #7f00ff, #00d8ff, #00ff88, #ffcc00);
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbowShift 4s linear infinite, soonPulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes soonPulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(255, 204, 0, 0.2)); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 0 14px rgba(0, 216, 255, 0.45)); }
+        }
+
+        .coming-soon-card p {
+            max-width: 620px;
+            margin-top: 14px;
+            color: var(--text-sub);
+            line-height: 1.7;
+            font-size: 14px;
+        }
+
+        .about-card {
+            background: rgba(12, 17, 29, 0.72);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 216, 255, 0.2);
+            border-radius: 22px;
+            padding: 30px;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.32);
+        }
+
+        .about-card p {
+            color: var(--text-sub);
+            line-height: 1.8;
+            font-size: 15px;
+            max-width: 900px;
+        }
+
+        .about-highlights {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .about-highlight {
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            text-align: center;
+        }
+
+        .about-highlight i {
+            display: block;
+            font-size: 22px;
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+
+        .about-highlight strong {
+            font-size: 14px;
+        }
+
+        #home, #free-ranks, #paid-ranks, #about {
+            scroll-margin-top: 120px;
+        }
+
+        @media (max-width: 900px) {
+            header {
+                align-items: flex-start;
+            }
+            .header-nav {
+                max-width: calc(100vw - 160px);
+                scrollbar-width: none;
+            }
+            .header-nav::-webkit-scrollbar { display: none; }
+            .paid-rank-section,
+            .about-section {
+                padding: 20px 5% 55px;
+            }
+            .paid-rank-heading,
+            .about-heading {
+                font-size: 24px;
+            }
+            .about-highlights {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 560px) {
+            header {
+                left: 3%;
+                right: 3%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .dynamic-island {
+                align-self: flex-start;
+                padding: 9px 14px;
+            }
+            .header-nav {
+                width: 100%;
+                max-width: 100%;
+                justify-content: space-between;
+                overflow-x: auto;
+            }
+            .header-nav a {
+                flex: 0 0 auto;
+                padding: 8px 9px;
+                font-size: 10px;
+            }
+            .hero {
+                padding-top: 190px;
+            }
+            .coming-soon-card {
+                min-height: 220px;
+                padding: 28px 18px;
+            }
+            .about-card {
+                padding: 22px 18px;
+            }
+        }
+
+        /* Smooth navigation with fixed-header offset */
+        #home,
+        #free-ranks,
+        #paid-ranks,
+        #about {
+            scroll-margin-top: 110px;
+        }
+
+    </style>
+<style>
+.rank-logo{
+width:64px;height:64px;display:block;margin:0 auto 14px;
+filter:drop-shadow(0 0 10px rgba(0,255,136,.55));
+transition:.3s ease;
+}
+.shop-card:hover .rank-logo{
+transform:scale(1.12) rotate(-5deg);
+filter:drop-shadow(0 0 18px rgba(0,216,255,.8));
+}
+</style></head>
+<body>
+<div class="ambient-mesh"></div>
+<div class="mouse-glow" id="mouseGlow"></div>
+<canvas id="blocks-canvas"></canvas>
+<header>
+<div class="dynamic-island">
+<div class="rainbow-title">ParrotMcStore</div>
+</div>
+<nav aria-label="Main navigation" class="header-nav">
+<a href="#home">Home</a>
+<a href="#free-ranks">Free Ranks</a>
+<a href="#paid-ranks">Paid Rank</a>
+<a href="#about">About</a>
+<a aria-label="Open ParrotMC Discord support" class="support-btn" href="https://discord.gg/tpj7qjTMEw" rel="noopener noreferrer" target="_blank">
+<i aria-hidden="true" class="fa-brands fa-discord"></i> Support
+</a>
+</nav>
+</header>
+<section class="hero" id="home">
+<div class="hero-text">
+<div class="server-badge">
+<span class="pulse-dot"></span>
+                OFFICIAL NETWORK STORE
+            </div>
+<h1>
+<span class="welcome-text">WELCOME TO</span>
+<span class="highlight">PARROTMC NETWORK</span>
+</h1>
+<p>Power up your gameplay — Unlock exclusive ranks, legendary items, and custom perks today!</p>
+</div>
+<!-- 3D Interactive Globe -->
+<div class="globe-wrapper">
+<div class="globe-aura"></div>
+<canvas height="360" id="core-globe" width="360"></canvas>
+</div>
+</section>
+<div class="section-gap"></div>
+<!-- Free Shop Section -->
+<section class="free-shop-section reveal" id="free-ranks">
+<h2 class="free-shop-heading">
+<i class="fa-solid fa-gift"></i> FREE SHOP
+        </h2>
+<div class="store-grid">
+<!-- Free VIP Rank Item -->
+<div class="shop-card" style="border-color: #00ff8855;"><span class="card-badge free-badge" style="color:#00ff88; border-color:#00ff8866; background:#00ff8822;">FREE</span><img alt="VIP Rank" class="rank-logo" src="https://img.icons8.com/fluency/96/diamond.png"/><h3>VIP Rank</h3><p><strong>Task: </strong>Join our Discord server and create a ticket named Free Staff. Send proof that you joined the server.</p><div class="card-footer"><div class="price-tag"><span class="price-val" style="color:#00ff88;">FREE</span></div><button class="claim-btn" onclick="openVipModal()" style="background: linear-gradient(135deg, #00ff88, #00d8ff);">CLAIM NOW</button></div></div><div class="shop-card" style="border-color: #00d8ff55;"><span class="card-badge free-badge" style="color:#00d8ff; border-color:#00d8ff66; background:#00d8ff22;">FREE</span><img alt="VIP+" class="rank-logo" src="https://img.icons8.com/fluency/96/star.png"/><h3>VIP+</h3><p><strong>Task: </strong>Invite 3 real members to our Discord server. Then create a ticket named Free Staff and send your invite proof.</p><div class="card-footer"><div class="price-tag"><span class="price-val" style="color:#00d8ff;">FREE</span></div><button class="claim-btn" onclick="openVipModal()" style="background: linear-gradient(135deg, #00d8ff, #00d8ff);">CLAIM NOW</button></div></div><div class="shop-card" style="border-color: #ffd70055;"><span class="card-badge free-badge" style="color:#ffd700; border-color:#ffd70066; background:#ffd70022;">FREE</span><img alt="VIP++" class="rank-logo" src="https://img.icons8.com/fluency/96/crown.png"/><h3>VIP++</h3><p><strong>Task: </strong>Invite 5 real members and stay active in Discord. Create a ticket named Free Staff and send complete proof.</p><div class="card-footer"><div class="price-tag"><span class="price-val" style="color:#ffd700;">FREE</span></div><button class="claim-btn" onclick="openVipModal()" style="background: linear-gradient(135deg, #ffd700, #00d8ff);">CLAIM NOW</button></div></div><div class="shop-card" style="border-color: #ff66cc55;"><span class="card-badge free-badge" style="color:#ff66cc; border-color:#ff66cc66; background:#ff66cc22;">FREE</span><img alt="Parrot" class="rank-logo" src="https://img.icons8.com/fluency/96/parrot.png"/><h3>Parrot</h3><p><strong>Task: </strong>Vote for ParrotMC on all available server voting links. Create a ticket named Free Staff and send screenshots as proof.</p><div class="card-footer"><div class="price-tag"><span class="price-val" style="color:#ff66cc;">FREE</span></div><button class="claim-btn" onclick="openVipModal()" style="background: linear-gradient(135deg, #ff66cc, #00d8ff);">CLAIM NOW</button></div></div><div class="shop-card" style="border-color: #a855f755;"><span class="card-badge free-badge" style="color:#a855f7; border-color:#a855f766; background:#a855f722;">FREE</span><img alt="Parrot+" class="rank-logo" src="https://img.icons8.com/fluency/96/parrot.png"/><h3>Parrot+</h3><p><strong>Task: </strong>Invite 10 real members and complete all voting tasks. Create a ticket named Free Staff and send all proof.</p><div class="card-footer"><div class="price-tag"><span class="price-val" style="color:#a855f7;">FREE</span></div><button class="claim-btn" onclick="openVipModal()" style="background: linear-gradient(135deg, #a855f7, #00d8ff);">CLAIM NOW</button></div></div><div class="shop-card" style="border-color: #ff4d4d55;"><span class="card-badge free-badge" style="color:#ff4d4d; border-color:#ff4d4d66; background:#ff4d4d22;">FREE</span><img alt="Deadlist" class="rank-logo" src="https://img.icons8.com/fluency/96/skull.png"/><h3>Deadlist</h3><p><strong>Task: </strong>Complete the special community task announced by staff. Create a ticket named Free Staff and send valid proof for verification.</p><div class="card-footer"><div class="price-tag"><span class="price-val" style="color:#ff4d4d;">FREE</span></div><button class="claim-btn" onclick="openVipModal()" style="background: linear-gradient(135deg, #ff4d4d, #00d8ff);">CLAIM NOW</button></div></div></div>
+</section>
+<!-- Main Store Section -->
+<!-- Free VIP Rank Instruction Modal -->
+<div class="modal-overlay" id="vipModal">
+<div class="modal-card">
+<button class="close-modal-btn" onclick="closeVipModal()"><i class="fa-solid fa-xmark"></i></button>
+<div class="modal-icon">
+<i class="fa-brands fa-discord"></i>
+</div>
+<h3>Claim Your Free Rank</h3>
+<p style="font-size: 13px; color: var(--text-sub);">Follow these simple steps to receive your rank on the server:</p>
+<div class="instructions-list"><div class="step-item"><div class="step-number">1</div><div>Complete the task written on your selected free rank card.</div></div><div class="step-item"><div class="step-number">2</div><div>Join our Discord server using the button below.</div></div><div class="step-item"><div class="step-number">3</div><div>Go to the tickets section and create a ticket named "Free Staff".</div></div><div class="step-item"><div class="step-number">4</div><div>Send clear proof of task completion and mention the rank you want.</div></div><div class="step-item"><div class="step-number">5</div><div>Our staff will verify the proof and assign the rank if valid.</div></div></div>
+<button class="dc-done-btn" onclick="redirectToDiscord()">
+<i class="fa-brands fa-discord"></i> DONE / JOIN DISCORD
+            </button>
+</div>
+</div><section class="paid-rank-section reveal" id="paid-ranks">
+<h2 class="paid-rank-heading"><i class="fa-solid fa-crown"></i> PAID RANK</h2>
+<div class="coming-soon-card">
+<div class="soon-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+<div class="coming-soon-text">COMING SOON</div>
+<p>Premium ranks with special perks, exclusive kits, custom tags, and more powerful server benefits are coming soon.</p>
+</div>
+</section><section class="about-section reveal" id="about">
+<h2 class="about-heading"><i class="fa-solid fa-circle-info"></i> ABOUT PARROTMC</h2>
+<div class="about-card">
+<p>ParrotMC is a high-quality Minecraft server created to give players a smooth, enjoyable, and exciting gaming experience. Our server offers a friendly community, balanced gameplay, useful features, and reliable performance so every player can enjoy the game without unnecessary problems.</p>
+<div class="about-highlights">
+<div class="about-highlight"><i class="fa-solid fa-bolt"></i><strong>Smooth Performance</strong></div>
+<div class="about-highlight"><i class="fa-solid fa-users"></i><strong>Friendly Community</strong></div>
+<div class="about-highlight"><i class="fa-solid fa-gamepad"></i><strong>Great Experience</strong></div>
+</div>
+</div>
+</section>
+<footer>
+<p>© 2026 PARROTMC Network. All rights reserved.</p>
+</footer>
+<script>
+        // Modal Handlers
+        function openVipModal() {
+            document.getElementById('vipModal').classList.add('active');
+        }
+
+        function closeVipModal() {
+            document.getElementById('vipModal').classList.remove('active');
+        }
+
+        // Updated Discord Link integration
+        function redirectToDiscord() {
+            window.open("https://discord.gg/tpj7qjTMEw", "_blank");
+            closeVipModal();
+        }
+
+        // Close Modal when clicking outside card
+        document.getElementById('vipModal').addEventListener('click', function(e) {
+            if (e.target === this) closeVipModal();
+        });
+
+        // Mouse Glow
+        const mouseGlow = document.getElementById('mouseGlow');
+        window.addEventListener('mousemove', (e) => {
+            mouseGlow.style.left = e.clientX + 'px';
+            mouseGlow.style.top = e.clientY + 'px';
+        });
+
+        // Scroll Reveal
+        function revealOnScroll() {
+            const reveals = document.querySelectorAll('.reveal');
+            for (let i = 0; i < reveals.length; i++) {
+                const windowHeight = window.innerHeight;
+                const elementTop = reveals[i].getBoundingClientRect().top;
+                const elementVisible = 120;
+
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add('active');
+                }
+            }
+        }
+        window.addEventListener('scroll', revealOnScroll);
+        revealOnScroll();
+
+        /* --- 3D GLOBE ENGINE --- */
+        const gCanvas = document.getElementById('core-globe');
+        const gCtx = gCanvas.getContext('2d');
+        const gRadius = 135;
+        const cx = gCanvas.width / 2;
+        const cy = gCanvas.height / 2;
+        let rotY = 0;
+
+        const landPoints = [];
+        const numClusters = 38; 
+
+        for (let c = 0; c < numClusters; c++) {
+            const lat = (Math.random() - 0.5) * Math.PI * 0.75;
+            const lon = (Math.random() - 0.5) * Math.PI * 2;
+            const clusterSize = Math.floor(Math.random() * 12 + 6);
+
+            for (let i = 0; i < clusterSize; i++) {
+                const pLat = lat + (Math.random() - 0.5) * 0.28;
+                const pLon = lon + (Math.random() - 0.5) * 0.35;
+
+                landPoints.push({
+                    x: gRadius * Math.cos(pLat) * Math.sin(pLon),
+                    y: gRadius * Math.sin(pLat),
+                    z: gRadius * Math.cos(pLat) * Math.cos(pLon)
+                });
+            }
+        }
+
+        const locationNodes = [
+            { lat: 0.2, lon: 1.2 },
+            { lat: -0.1, lon: -0.8 },
+            { lat: 0.45, lon: 2.1 },
+            { lat: -0.3, lon: 2.8 }
+        ];
+
+        function renderCoreGlobe() {
+            gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height);
+            rotY += 0.005;
+
+            const cosR = Math.cos(rotY);
+            const sinR = Math.sin(rotY);
+
+            gCtx.save();
+            gCtx.beginPath();
+            gCtx.arc(cx, cy, gRadius, 0, Math.PI * 2);
+            gCtx.strokeStyle = 'rgba(0, 110, 255, 0.25)';
+            gCtx.lineWidth = 1.5;
+            gCtx.stroke();
+
+            for (let latDeg = -60; latDeg <= 60; latDeg += 30) {
+                const rLat = (latDeg * Math.PI) / 180;
+                const rRadius = gRadius * Math.cos(rLat);
+                const rY = cy + gRadius * Math.sin(rLat);
+
+                gCtx.beginPath();
+                gCtx.ellipse(cx, rY, rRadius, rRadius * 0.22, 0, 0, Math.PI * 2);
+                gCtx.strokeStyle = 'rgba(0, 140, 255, 0.12)';
+                gCtx.lineWidth = 1;
+                gCtx.stroke();
+            }
+
+            for (let i = 0; i < landPoints.length; i++) {
+                const pt = landPoints[i];
+                const rx = pt.x * cosR - pt.z * sinR;
+                const rz = pt.x * sinR + pt.z * cosR;
+
+                if (rz > -10) {
+                    const scale = (rz + gRadius) / (2 * gRadius);
+                    const px = cx + rx;
+                    const py = cy + pt.y;
+                    const alpha = Math.max(0.1, scale * 0.7);
+
+                    gCtx.fillStyle = `rgba(0, 180, 255, ${alpha})`;
+                    gCtx.beginPath();
+                    gCtx.arc(px, py, scale * 1.5, 0, Math.PI * 2);
+                    gCtx.fill();
+                }
+            }
+
+            for (let i = 0; i < locationNodes.length; i++) {
+                const node = locationNodes[i];
+                const nx = gRadius * Math.cos(node.lat) * Math.sin(node.lon);
+                const ny = gRadius * Math.sin(node.lat);
+                const nz = gRadius * Math.cos(node.lat) * Math.cos(node.lon);
+
+                const rx = nx * cosR - nz * sinR;
+                const rz = nx * sinR + nz * cosR;
+
+                if (rz > 0) {
+                    const px = cx + rx;
+                    const py = cy + ny;
+
+                    const pulse = (Date.now() % 1500) / 1500;
+                    gCtx.beginPath();
+                    gCtx.arc(px, py, 3 + pulse * 10, 0, Math.PI * 2);
+                    gCtx.strokeStyle = `rgba(0, 255, 136, ${1 - pulse})`;
+                    gCtx.lineWidth = 1.2;
+                    gCtx.stroke();
+
+                    gCtx.beginPath();
+                    gCtx.arc(px, py, 3.5, 0, Math.PI * 2);
+                    gCtx.fillStyle = '#00ff88';
+                    gCtx.shadowBlur = 10;
+                    gCtx.shadowColor = '#00ff88';
+                    gCtx.fill();
+                    gCtx.shadowBlur = 0;
+                }
+            }
+
+            gCtx.restore();
+            requestAnimationFrame(renderCoreGlobe);
+        }
+        renderCoreGlobe();
+
+        // Background Canvas Particles
+        const canvas = document.getElementById('blocks-canvas');
+        const ctx = canvas.getContext('2d');
+        let blocks = [];
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class MinecraftBlock {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 200;
+                this.size = Math.random() * 26 + 16;
+                this.speed = Math.random() * 0.35 + 0.12;
+                this.opacity = Math.random() * 0.3 + 0.1;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotSpeed = (Math.random() - 0.5) * 0.004;
+                const types = [
+                    { top: '#00ff88', side1: '#00cc6c', side2: '#009951' },
+                    { top: '#00d8ff', side1: '#00a3cc', side2: '#007799' },
+                    { top: '#101726', side1: '#0a0f1a', side2: '#05070c' }
+                ];
+                this.color = types[Math.floor(Math.random() * types.length)];
+            }
+            update() {
+                this.y -= this.speed;
+                this.rotation += this.rotSpeed;
+                if (this.y < -100) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.globalAlpha = this.opacity;
+                const s = this.size;
+
+                ctx.beginPath();
+                ctx.moveTo(0, -s / 2);
+                ctx.lineTo(s / 2, -s / 4);
+                ctx.lineTo(0, 0);
+                ctx.lineTo(-s / 2, -s / 4);
+                ctx.closePath();
+                ctx.fillStyle = this.color.top;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(-s / 2, -s / 4);
+                ctx.lineTo(0, 0);
+                ctx.lineTo(0, s / 2);
+                ctx.lineTo(-s / 2, s / 4);
+                ctx.closePath();
+                ctx.fillStyle = this.color.side1;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(s / 2, -s / 4);
+                ctx.lineTo(s / 2, s / 4);
+                ctx.lineTo(0, s / 2);
+                ctx.closePath();
+                ctx.fillStyle = this.color.side2;
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class GlowParticle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.radius = Math.random() * 1.8 + 0.4;
+                this.speedY = (Math.random() - 0.5) * 0.2;
+                this.speedX = (Math.random() - 0.5) * 0.2;
+                this.opacity = Math.random() * 0.4 + 0.1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#00ff88';
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#00ff88';
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < 26; i++) {
+            const block = new MinecraftBlock();
+            block.y = Math.random() * canvas.height;
+            blocks.push(block);
+        }
+
+        for (let i = 0; i < 45; i++) {
+            particles.push(new GlowParticle());
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            blocks.forEach(b => { b.update(); b.draw(); });
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+    </script>
+</body>
+</html>
